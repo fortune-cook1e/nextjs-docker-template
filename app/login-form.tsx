@@ -11,11 +11,15 @@ import { Input } from '@/components/ui/input';
 import { userSchema } from '@/lib/validators';
 import z from 'zod';
 import { Controller, useForm } from 'react-hook-form';
+import Link from 'next/link';
 
-const formSchema = userSchema.pick({
-  email: true,
-  password: true,
-});
+const formSchema = userSchema
+  .pick({
+    email: true,
+  })
+  .extend({
+    password: z.string().min(6),
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -74,6 +78,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
 
               <Field>
                 <Button type="submit">Login</Button>
+                <Link href="/user">Goto user</Link>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription>
