@@ -1,5 +1,4 @@
-export interface User {
-  id: number;
-  name: string;
-  age: number;
-}
+import { userSchema } from '@/lib/validators';
+import { z } from 'zod';
+
+export type User = z.infer<typeof userSchema>;
