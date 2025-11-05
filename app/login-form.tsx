@@ -8,18 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 
-import { userSchema } from '@/lib/validators';
+import { loginSchema } from '@/lib/validators';
 import z from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import Link from 'next/link';
 
-const formSchema = userSchema
-  .pick({
-    email: true,
-  })
-  .extend({
-    password: z.string().min(6),
-  });
+const formSchema = loginSchema;
 
 type FormValues = z.infer<typeof formSchema>;
 
