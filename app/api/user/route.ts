@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { userSchema } from '@/lib/validators';
-import { CreateUser } from '@/types';
+import { CreateUser, CreateUserInDb, User } from '@/types';
+import { hashPassword, generateSalt } from '@/lib/bcrypt';
 
 export async function GET() {
   const supabase = await createClient();
@@ -13,9 +14,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const body: CreateUser = await request.json();
+    const { email, password, username }: CreateUser = await request.json();
 
-    if (!body.email || !body.password || !body.username) {
+    if (!email || !password || !username) {
       return NextResponse.json(
         {
           error: 'Parameter is missed',
@@ -26,10 +27,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // check if email or username existed
+    // check if user has already existed
     const [{ data: existingEmail }, { data: existingUsername }] = await Promise.all([
-      supabase.from('user').select('email').eq('email', body.email).single(),
-      supabase.from('user').select('username').eq('username', body.username).single(),
+      supabase.from('user').select('email').eq('email', email).single(),
+      supabase.from('user').select('username').eq('username', username).single(),
     ]);
 
     if (existingEmail) {
@@ -54,23 +55,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Todo: Salt needs to be produced
-    // const { data: newUser, error } = await supabase
-    // .from('user')
-    // .insert({
-    //   email,
-    //   password,
-    //   name: name || email.split('@')[0],
-    //   created_at: new Date().toISOString(),
-    //   updated_at: new Date().toISOString(),
-    // })
-    // .select()
-    // .single();
+    // create a new user
+    const salt = await generateSalt();
+    const hashedPassword = await hashPassword(password, salt);
 
-    return NextResponse.json(body);
+    const user: CreateUserInDb = {
+      email,
+      password: hashedPassword,
+      username,
+      salt,
+    };
+
+    const { data: newUser } = await supabase.from('user').insert(user).select().single();
+
+    return NextResponse.json(userSchema.parse(newUser));
   } catch (error) {
     return NextResponse.json(
-      { error: '请求格式错误', details: error instanceof Error ? error.message : '未知错误' },
+      { error: 'Unknown error', details: error instanceof Error ? error.message : '未知错误' },
       { status: 400 }
     );
   }
