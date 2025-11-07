@@ -11,23 +11,33 @@ import { Input } from '@/components/ui/input';
 import { loginSchema } from '@/lib/validators';
 import z from 'zod';
 import { Controller, useForm } from 'react-hook-form';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useLogin } from '@/hooks/useAuthentication';
+import { toast } from 'sonner';
 
 const formSchema = loginSchema;
 
 type FormValues = z.infer<typeof formSchema>;
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
+  const router = useRouter();
+  const { loading, login, error } = useLogin();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '123@qq.com',
-      password: '1234567',
+      email: '654321@qq.com',
+      password: '123456',
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log({ data });
+  const onSubmit = async (data: FormValues) => {
+    await login(data);
+    if (error) {
+      toast.error('Login Error');
+    }
+    toast.success('Login success');
+    router.push('/profile');
   };
 
   return (
@@ -71,8 +81,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
               />
 
               <Field>
-                <Button type="submit">Login</Button>
-                <Link href="/user">Goto user</Link>
+                <Button type="submit" loading={loading}>
+                  Login
+                </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription>

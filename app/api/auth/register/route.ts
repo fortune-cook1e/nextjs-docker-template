@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { Register } from '@/types';
+import { userSchema } from '@/lib/validators';
 
 // refer to: https://supabase.com/docs/reference/kotlin/auth-signup
 export async function POST(request: Request) {
@@ -11,6 +12,7 @@ export async function POST(request: Request) {
     const { data: existingUsers, error: checkError } = await supabase.auth.admin.listUsers();
 
     if (checkError) {
+      return NextResponse.json({ error: checkError, data: null }, { status: 400 });
     } else {
       const emailExists = existingUsers?.users?.some(
         user => user.email === email && user.email_confirmed_at !== null
@@ -34,11 +36,13 @@ export async function POST(request: Request) {
       },
     });
 
+    const _user = userSchema.parse(data.user);
+
     if (error) {
       return NextResponse.json({ error: error.message, data: null }, { status: 400 });
     }
 
-    return NextResponse.json({ data: data.user, message: '注册成功' });
+    return NextResponse.json({ data: _user, message: '注册成功' });
   } catch (error) {
     return NextResponse.json(
       { error: 'Unknown error', details: error instanceof Error ? error.message : '未知错误' },

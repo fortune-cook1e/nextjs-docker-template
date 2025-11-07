@@ -1,15 +1,16 @@
-'use client';
-import { useUsers } from '@/hooks';
+import { createClient } from '@/lib/supabase/server';
+import { userSchema } from '@/lib/validators';
 
-const Page = () => {
-  const { users = [] } = useUsers();
+const Page = async () => {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const user = userSchema.parse(data.user);
 
   return (
     <div>
       <h1>this is User Page</h1>
-      {users.map(p => (
-        <p key={p.id}>{p.id}</p>
-      ))}
+      <p>Username:{user.user_metadata.username}</p>
+      <p>Email:{user.email}</p>
     </div>
   );
 };
