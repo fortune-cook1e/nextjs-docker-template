@@ -1,0 +1,25 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+// https://supabase.com/docs/reference/javascript/auth-signout
+export async function POST() {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return NextResponse.json(
+        { error, details: error instanceof Error ? error.message : '未知错误' },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ message: 'logout success' });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unknown error', details: error instanceof Error ? error.message : '未知错误' },
+      { status: 400 }
+    );
+  }
+}

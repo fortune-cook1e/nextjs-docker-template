@@ -2,22 +2,16 @@ import { get } from '@/lib/request';
 import { User } from '@/types';
 import useSWR from 'swr';
 
-export function useUsers() {
-  const { data, error, isLoading } = useSWR<User[]>(`/api/user`, () => get('/user'));
-
-  return {
-    users: data,
-    isLoading,
-    isError: error,
-  };
+function getUserInfo(url: string) {
+  return get<User>(url);
 }
 
-// export function useUser(id: string) {
-//   const { data, error, isLoading } = useSWR(`/api/user/${id}`, getUserList);
+export function useUser() {
+  const { data, error, isLoading } = useSWR('/user', getUserInfo);
 
-//   return {
-//     user: data,
-//     isLoading,
-//     isError: error,
-//   };
-// }
+  return {
+    user: data,
+    error,
+    loading: isLoading,
+  };
+}

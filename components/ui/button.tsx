@@ -56,6 +56,7 @@ function Button({
       {...props}
     >
       {loading && <Spinner />}
+      {props.children}
     </Comp>
   );
 }

@@ -1,32 +1,58 @@
 import { post } from '@/lib/request';
-import { User } from '@/types';
+import { AuthenticationResponse, Login, Register } from '@/types';
 import useSWRMutation from 'swr/mutation';
 
-interface RegisterParams {
-  email: string;
-  password: string;
+function registerFetcher(url: string, { arg }: { arg: Register }) {
+  return post<AuthenticationResponse>(url, arg);
 }
 
-interface RegisterResponse {
-  data?: User;
-  message?: string;
-  error?: string;
+function loginFetcher(url: string, { arg }: { arg: Login }) {
+  return post<AuthenticationResponse>(url, arg);
+}
+
+function logoutFetcher(url: string) {
+  return post(url);
 }
 
 export function useRegister() {
   const { trigger, isMutating, error } = useSWRMutation<
-    RegisterResponse,
+    AuthenticationResponse,
     Error,
     string,
-    RegisterParams
-  >('/auth/register', async (url, { arg }: { arg: RegisterParams }) => {
-    return post<RegisterResponse>(url, arg);
-  });
+    Register
+  >('/auth/register', registerFetcher);
 
   return {
-    register: ({ email, password }: { email: string; password: string }) =>
-      trigger({ email, password }),
-    isLoading: isMutating,
+    register: trigger,
+    loading: isMutating,
+    error,
+  };
+}
+
+export function useLogin() {
+  const { trigger, isMutating, error } = useSWRMutation<
+    AuthenticationResponse,
+    Error,
+    string,
+    Login
+  >('/auth/login', loginFetcher);
+
+  return {
+    login: trigger,
+    loading: isMutating,
+    error,
+  };
+}
+
+export function useLogout() {
+  const { trigger, isMutating, error } = useSWRMutation<any, Error, string>(
+    '/auth/logout',
+    logoutFetcher
+  );
+
+  return {
+    logout: trigger,
+    loading: isMutating,
     error,
   };
 }
