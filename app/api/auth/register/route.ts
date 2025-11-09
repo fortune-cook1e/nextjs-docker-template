@@ -9,22 +9,23 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const { email, password, username }: Register = await request.json();
 
-    const { data: existingUsers, error: checkError } = await supabase.auth.admin.listUsers();
+    // FixMe: Only Admin can do below things
+    // const { data: existingUsers, error: checkError } = await supabase.auth.admin.listUsers();
 
-    if (checkError) {
-      return NextResponse.json({ error: checkError, data: null }, { status: 400 });
-    } else {
-      const emailExists = existingUsers?.users?.some(
-        user => user.email === email && user.email_confirmed_at !== null
-      );
+    // if (checkError) {
+    //   return NextResponse.json({ error: checkError, data: null }, { status: 400 });
+    // } else {
+    //   const emailExists = existingUsers?.users?.some(
+    //     user => user.email === email && user.email_confirmed_at !== null
+    //   );
 
-      if (emailExists) {
-        return NextResponse.json(
-          { error: 'Email has been registered', data: null },
-          { status: 400 }
-        );
-      }
-    }
+    //   if (emailExists) {
+    //     return NextResponse.json(
+    //       { error: 'Email has been registered', data: null },
+    //       { status: 400 }
+    //     );
+    //   }
+    // }
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -36,11 +37,11 @@ export async function POST(request: Request) {
       },
     });
 
-    const _user = userSchema.parse(data.user);
-
     if (error) {
       return NextResponse.json({ error: error.message, data: null }, { status: 400 });
     }
+
+    const _user = userSchema.parse(data.user);
 
     return NextResponse.json({ data: _user, message: '注册成功' });
   } catch (error) {
